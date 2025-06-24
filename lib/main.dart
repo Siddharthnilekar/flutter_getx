@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:getx_chapter_1/app/modules/product/controllers/cart_controller.dart';
 import 'app/routes/app_pages.dart';
 
 void main() {
-  runApp(const MyApp());
+  Get.put(CartController());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "Product App",
+      title: 'Product App',
       initialRoute: Routes.PRODUCT,
       getPages: AppPages.routes,
     );

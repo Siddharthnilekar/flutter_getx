@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getx_chapter_1/app/modules/product/controllers/product_controller.dart';
-// import 'package:getx_chapter_1/app/modules/product/views/product_details_view.dart';
+import 'package:getx_chapter_1/app/modules/product/view/product_details_view.dart';
+
 
 class ProductView extends StatelessWidget {
-  final ProductController productController = Get.put(ProductController());
+  final ProductController productController = Get.find<ProductController>();
 
   @override
   Widget build(BuildContext context) {

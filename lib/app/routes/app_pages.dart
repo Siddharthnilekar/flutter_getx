@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:getx_chapter_1/app/bindings/CartBinding.dart';
+import 'package:getx_chapter_1/app/bindings/ProductBinding.dart';
 
 import '../modules/product/view/cart_view.dart';
 import '../modules/product/view/checkout_view.dart';
@@ -12,11 +14,12 @@ class AppPages {
     GetPage(
       name: Routes.PRODUCT,
       page: () => ProductView(),
-    ),
+      binding: ProductBinding()),
     GetPage(
       name: Routes.PRODUCT_DETAILS,
       page: () => ProductDetailsView(),
-    ),
+      binding: CartBinding()),
+
     GetPage(
       name: Routes.CART,
       page: () => CartView(),

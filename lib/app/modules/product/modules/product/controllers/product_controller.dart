@@ -1,7 +1,8 @@
 import 'package:get/get.dart';
+import 'package:getx_chapter_1/app/modules/product/models/product_model.dart';
 import 'package:getx_chapter_1/app/services/product_service.dart';
 
-import '../models/product_model.dart';
+// import '../models/product_model.dart';
 
 class ProductController extends GetxController {
   var productList = <ProductModel>[].obs;

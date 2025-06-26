@@ -11,7 +11,6 @@ class CartController extends GetxController {
   double get totalAmount => cartService.totalAmount;
 
   void addToCart(ProductModel product) {
-    cartItems.add(product);
     cartService.addToCart(product);
   }
 

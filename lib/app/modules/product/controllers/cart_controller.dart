@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:getx_chapter_1/app/services/cart_service.dart';
-
 import '../models/product_model.dart';
 
 class CartController extends GetxController {
@@ -17,4 +16,6 @@ class CartController extends GetxController {
   void removeFromCart(ProductModel product) {
     cartService.removeFromCart(product);
   }
+
+  int getQuantity(ProductModel product) => cartService.getQuantity(product);
 }

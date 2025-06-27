@@ -18,3 +18,4 @@ class CartController extends GetxController {
     cartService.removeFromCart(product);
   }
 }
+

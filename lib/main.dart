@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:getx_chapter_1/app/services/cart_service.dart';
-import 'package:getx_chapter_1/app/services/theme_service.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:getx_chapter_1/app/bindings/ProductBinding.dart';
+import 'package:getx_chapter_1/app/modules/product/view/cart_view.dart';
+import 'package:getx_chapter_1/app/modules/product/view/checkout_view.dart';
+import 'package:getx_chapter_1/app/modules/product/view/product_details_view.dart';
+import 'package:getx_chapter_1/app/modules/product/view/product_view.dart';
 import 'package:getx_chapter_1/app/services/translations.dart';
-import 'app/routes/app_pages.dart';
 
 void main() async {
-  Get.put(CartService());
+  await GetStorage.init();
   runApp(MyApp());
 }
 
@@ -15,15 +18,36 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Product App',
+      title: 'Shopping App',
       translations: AppTranslations(),
       locale: Locale('en', 'US'),
       fallbackLocale: Locale('en', 'US'),
+      initialRoute: '/product',
+      getPages: [
+        GetPage(
+          name: '/product',
+          page: () => ProductView(),
+          binding: ProductBinding(),
+        ),
+        GetPage(
+          name: '/product-details',
+          page: () => ProductDetailsView(),
+          binding: ProductBinding(),
+        ),
+        GetPage(
+          name: '/cart',
+          page: () => CartView(),
+          binding: ProductBinding(),
+        ),
+        GetPage(
+          name: '/checkout',
+          page: () => CheckoutView(),
+          binding: ProductBinding(),
+        ),
+      ],
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
-      themeMode: ThemeService().theme,
-      initialRoute: Routes.PRODUCT,
-      getPages: AppPages.routes,
+      themeMode: ThemeMode.system,
     );
   }
 }

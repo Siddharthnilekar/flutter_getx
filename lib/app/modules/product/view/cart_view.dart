@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../routes/app_pages.dart';
-import '../controllers/cart_controller.dart';
+import 'package:getx_chapter_1/app/modules/product/controllers/cart_controller.dart';
+import 'package:getx_chapter_1/app/modules/product/view/checkout_view.dart';
 
 class CartView extends StatelessWidget {
   final CartController cartController = Get.find<CartController>();
@@ -10,59 +10,53 @@ class CartView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Cart'),
+        title: Text('cart'.tr),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Obx(() {
-              return ListView.builder(
+      body: Obx(() {
+        if (cartController.cartItems.isEmpty) {
+          return Center(child: Text('empty_cart'.tr));
+        }
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
                 itemCount: cartController.cartItems.length,
                 itemBuilder: (context, index) {
-                  final item = cartController.cartItems[index];
+                  final product = cartController.cartItems[index];
+                  final quantity = cartController.getQuantity(product);
                   return ListTile(
-                    title: Text(item.title),
-                    subtitle: Text('\$${item.price.toString()}'),
+                    leading: Image.network(
+                      product.image,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Icon(Icons.error),
+                    ),
+                    title: Text(product.title),
+                    subtitle: Text('${'price'.tr}: \$${product.price.toStringAsFixed(2)} x $quantity'),
                     trailing: IconButton(
-                      icon: Icon(Icons.remove_circle_outline),
-                      onPressed: () {
-                        Get.defaultDialog(
-                          title: "Remove Item",
-                          middleText:
-                              "Are you sure you want to remove ${item.title} from the cart?",
-                          textConfirm: "Yes",
-                          textCancel: "No",
-                          confirmTextColor: Colors.white,
-                          onConfirm: () {
-                            cartController.removeFromCart(item);
-                            Get.back();
-                          },
-                          onCancel: () {},
-                        );
-                      },
+                      icon: Icon(Icons.remove_circle),
+                      onPressed: () => cartController.removeFromCart(product),
                     ),
                   );
                 },
-              );
-            }),
-          ),
-          Obx(() {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Total: \$${cartController.totalAmount.toStringAsFixed(2)}',
-                style: TextStyle(fontSize: 24),
               ),
-            );
-          }),
-          ElevatedButton(
-            onPressed: () {
-              Get.toNamed(Routes.CHECKOUT);
-            },
-            child: Text('Proceed to Checkout'),
-          ),
-        ],
-      ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                '${'total'.tr}: \$${cartController.totalAmount.toStringAsFixed(2)}',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            AnimatedButton(
+              text: 'proceed_to_checkout'.tr,
+              onPressed: () => Get.toNamed('/checkout'),
+            ),
+            SizedBox(height: 16),
+          ],
+        );
+      }),
     );
   }
 }

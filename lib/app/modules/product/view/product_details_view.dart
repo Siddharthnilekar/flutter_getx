@@ -29,10 +29,29 @@ class ProductDetailsView extends StatelessWidget {
       appBar: AppBar(
         title: Text('product_details'.tr),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            tooltip: 'view_cart'.tr,
-            onPressed: () => Get.toNamed('/cart'),
+          Padding(
+            padding: const EdgeInsets.only(
+              right: 8.0,
+            ),
+            child: Obx(
+              () => Badge(
+                isLabelVisible: cartController.cartItems.isNotEmpty,
+                label: Text(
+                  cartController.cartItems.length.toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 10),
+                ),
+                backgroundColor: Colors.red,
+                offset: const Offset(
+                  -4,
+                  -4,
+                ), // Shifts badge slightly left and up
+                child: IconButton(
+                  icon: const Icon(Icons.shopping_cart),
+                  tooltip: 'view_cart'.tr,
+                  onPressed: () => Get.toNamed('/cart'),
+                ),
+              ),
+            ),
           ),
         ],
       ),

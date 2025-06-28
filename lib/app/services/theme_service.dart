@@ -1,19 +1,46 @@
+// import 'package:flutter/material.dart';
+// import 'package:get/get.dart';
+
+// class ThemeService {
+//   final _key = 'isDarkMode';
+
+//   bool _loadThemeFromStorage() => Get.isDarkMode;
+
+//   void _saveThemeToStorage(bool isDarkMode) =>
+//       Get.changeThemeMode(isDarkMode ? ThemeMode.dark : ThemeMode.light);
+
+//   ThemeMode get theme =>
+//       _loadThemeFromStorage() ? ThemeMode.dark : ThemeMode.light;
+
+//   void switchTheme() {
+//     Get.changeThemeMode(Get.isDarkMode ? ThemeMode.light : ThemeMode.dark);
+//     _saveThemeToStorage(!Get.isDarkMode);
+//   }
+// }
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class ThemeService {
+  final _storage = GetStorage();
   final _key = 'isDarkMode';
 
-  bool _loadThemeFromStorage() => Get.isDarkMode;
+  // Load theme from GetStorage, default to false (light mode) if not set
+  bool _loadThemeFromStorage() => _storage.read(_key) ?? false;
 
-  void _saveThemeToStorage(bool isDarkMode) =>
-      Get.changeThemeMode(isDarkMode ? ThemeMode.dark : ThemeMode.light);
+  // Save theme to GetStorage and update GetX theme
+  void _saveThemeToStorage(bool isDarkMode) {
+    _storage.write(_key, isDarkMode);
+    Get.changeThemeMode(isDarkMode ? ThemeMode.dark : ThemeMode.light);
+  }
 
-  ThemeMode get theme =>
-      _loadThemeFromStorage() ? ThemeMode.dark : ThemeMode.light;
+  // Get current theme mode
+  ThemeMode get theme => _loadThemeFromStorage() ? ThemeMode.dark : ThemeMode.light;
 
+  // Switch theme and save to storage
   void switchTheme() {
-    Get.changeThemeMode(Get.isDarkMode ? ThemeMode.light : ThemeMode.dark);
-    _saveThemeToStorage(!Get.isDarkMode);
+    bool isDarkMode = !_loadThemeFromStorage();
+    _saveThemeToStorage(isDarkMode);
   }
 }

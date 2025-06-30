@@ -19,3 +19,4 @@ class CartController extends GetxController {
 
   int getQuantity(ProductModel product) => cartService.getQuantity(product);
 }
+

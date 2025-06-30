@@ -1,19 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getx_chapter_1/app/modules/product/controllers/cart_controller.dart';
+import 'package:getx_chapter_1/app/services/language_selector.dart';
 import '../models/product_model.dart';
 import 'dart:developer' as developer;
 
 class ProductDetailsView extends StatelessWidget {
   final CartController cartController = Get.find<CartController>();
   final ProductModel? product = Get.arguments;
+  final GlobalKey cartIconKey = GlobalKey();
+  final GlobalKey imageKey = GlobalKey(); // Key for product image
 
   ProductDetailsView({super.key}) {
-    // Log arguments for debugging
     developer.log(
       'ProductDetailsView arguments: $product',
       name: 'ProductDetailsView',
     );
+  }
+
+  void _addToCartWithAnimation(BuildContext context) {
+    if (product == null) return;
+    final RenderBox? cartBox =
+        cartIconKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? imageBox =
+        imageKey.currentContext?.findRenderObject() as RenderBox?;
+    if (cartBox == null || imageBox == null) return;
+
+    final cartPosition = cartBox.localToGlobal(Offset.zero);
+    final imagePosition = imageBox.localToGlobal(Offset.zero);
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => AnimatedImageToCart(
+        imageUrl: product!.image,
+        startPosition: imagePosition,
+        endPosition: cartPosition,
+        onAnimationComplete: () {
+          cartController.addToCart(product!);
+          Get.snackbar(
+            'added_to_cart'.tr,
+            '${product!.title} ${'added_to_cart_message'.tr}',
+            snackPosition: SnackPosition.BOTTOM,
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+        },
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+    Future.delayed(const Duration(milliseconds: 600), () {
+      overlayEntry.remove();
+    });
   }
 
   @override
@@ -30,9 +69,7 @@ class ProductDetailsView extends StatelessWidget {
         title: Text('product_details'.tr),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(
-              right: 8.0,
-            ),
+            padding: const EdgeInsets.only(right: 8.0),
             child: Obx(
               () => Badge(
                 isLabelVisible: cartController.cartItems.isNotEmpty,
@@ -41,11 +78,9 @@ class ProductDetailsView extends StatelessWidget {
                   style: const TextStyle(color: Colors.white, fontSize: 10),
                 ),
                 backgroundColor: Colors.red,
-                offset: const Offset(
-                  -4,
-                  -4,
-                ), // Shifts badge slightly left and up
+                offset: const Offset(-4, -4),
                 child: IconButton(
+                  key: cartIconKey,
                   icon: const Icon(Icons.shopping_cart),
                   tooltip: 'view_cart'.tr,
                   onPressed: () => Get.toNamed('/cart'),
@@ -53,6 +88,7 @@ class ProductDetailsView extends StatelessWidget {
               ),
             ),
           ),
+          const LanguageSelector(),
         ],
       ),
       body: SlideTransition(
@@ -71,12 +107,16 @@ class ProductDetailsView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: Image.network(
-                  product!.image,
-                  height: 200,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.error, size: 100),
+                child: Hero(
+                  tag: 'product-image-${product!.id}',
+                  child: Image.network(
+                    product!.image,
+                    key: imageKey, // Assign key to image
+                    height: 200,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.error, size: 100),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -107,24 +147,14 @@ class ProductDetailsView extends StatelessWidget {
               const SizedBox(height: 20),
               AnimatedButton(
                 text: 'add_to_cart'.tr,
-                onPressed: () {
-                  cartController.addToCart(product!);
-                  Get.snackbar(
-                    'added_to_cart'.tr,
-                    '${product!.title} ${'added_to_cart_message'.tr}',
-                    snackPosition: SnackPosition.BOTTOM,
-                    duration: const Duration(seconds: 2),
-                    backgroundColor: Colors.green,
-                    colorText: Colors.white,
-                  );
-                },
+                onPressed: () => _addToCartWithAnimation(context),
               ),
               AnimatedButton(
                 text: 'more_actions'.tr,
                 onPressed: () {
                   Get.bottomSheet(
                     Container(
-                      color: Colors.white,
+                      color: Theme.of(context).scaffoldBackgroundColor,
                       padding: const EdgeInsets.all(16),
                       child: Wrap(
                         children: [
@@ -210,6 +240,95 @@ class _AnimatedButtonState extends State<AnimatedButton>
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class AnimatedImageToCart extends StatefulWidget {
+  final String imageUrl;
+  final Offset startPosition;
+  final Offset endPosition;
+  final VoidCallback onAnimationComplete;
+
+  const AnimatedImageToCart({
+    required this.imageUrl,
+    required this.startPosition,
+    required this.endPosition,
+    required this.onAnimationComplete,
+    super.key,
+  });
+
+  @override
+  _AnimatedImageToCartState createState() => _AnimatedImageToCartState();
+}
+
+class _AnimatedImageToCartState extends State<AnimatedImageToCart>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _positionAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _positionAnimation = Tween<Offset>(
+      begin: widget.startPosition,
+      end: widget.endPosition,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.3,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+
+    _opacityAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+
+    _controller.addListener(() {
+      setState(() {});
+    });
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        widget.onAnimationComplete();
+      }
+    });
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: _positionAnimation.value.dx,
+      top: _positionAnimation.value.dy,
+      child: Transform.scale(
+        scale: _scaleAnimation.value,
+        child: Opacity(
+          opacity: _opacityAnimation.value,
+          child: Image.network(
+            widget.imageUrl,
+            width: 50,
+            height: 50,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+          ),
+        ),
       ),
     );
   }

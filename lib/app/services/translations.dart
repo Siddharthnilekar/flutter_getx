@@ -27,7 +27,8 @@ class AppTranslations extends Translations {
           'thank_you': 'Thank you for your purchase!',
           'place_order': 'Place Order',
           'order_completed': 'Order Completed',
-          'order_placed': 'Your order has been placed successfully',
+          'order_placed': 'Your order has been placed successfully',   
+                
         },
         'es_ES': {
           'product_list': 'Lista de Productos',

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getx_chapter_1/app/modules/product/controllers/cart_controller.dart';
 import 'package:getx_chapter_1/app/services/language_selector.dart';
@@ -10,7 +9,7 @@ class ProductDetailsView extends StatelessWidget {
   final CartController cartController = Get.find<CartController>();
   final ProductModel? product = Get.arguments;
   final GlobalKey cartIconKey = GlobalKey();
-  final GlobalKey imageKey = GlobalKey(); // Key for product image
+  final GlobalKey imageKey = GlobalKey();
 
   ProductDetailsView({super.key}) {
     developer.log(
@@ -111,7 +110,7 @@ class ProductDetailsView extends StatelessWidget {
                   tag: 'product-image-${product!.id}',
                   child: Image.network(
                     product!.image,
-                    key: imageKey, // Assign key to image
+                    key: imageKey,
                     height: 200,
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) =>
@@ -145,34 +144,44 @@ class ProductDetailsView extends StatelessWidget {
               const SizedBox(height: 16),
               Text(product!.description, style: const TextStyle(fontSize: 16)),
               const SizedBox(height: 20),
-              AnimatedButton(
-                text: 'add_to_cart'.tr,
-                onPressed: () => _addToCartWithAnimation(context),
-              ),
-              AnimatedButton(
-                text: 'more_actions'.tr,
-                onPressed: () {
-                  Get.bottomSheet(
-                    Container(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      padding: const EdgeInsets.all(16),
-                      child: Wrap(
-                        children: [
-                          ListTile(
-                            leading: const Icon(Icons.shopping_cart),
-                            title: Text('view_cart'.tr),
-                            onTap: () => Get.toNamed('/cart'),
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.payment),
-                            title: Text('proceed_to_checkout'.tr),
-                            onTap: () => Get.toNamed('/checkout'),
-                          ),
-                        ],
-                      ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: AnimatedButton(
+                      text: 'add_to_cart'.tr,
+                      onPressed: () => _addToCartWithAnimation(context),
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: AnimatedButton(
+                      text: 'more_actions'.tr,
+                      onPressed: () {
+                        Get.bottomSheet(
+                          Container(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            padding: const EdgeInsets.all(16),
+                            child: Wrap(
+                              children: [
+                                ListTile(
+                                  leading: const Icon(Icons.shopping_cart),
+                                  title: Text('view_cart'.tr),
+                                  onTap: () => Get.toNamed('/cart'),
+                                ),
+                                ListTile(
+                                  leading: const Icon(Icons.payment),
+                                  title: Text('proceed_to_checkout'.tr),
+                                  onTap: () => Get.toNamed('/checkout'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -182,7 +191,7 @@ class ProductDetailsView extends StatelessWidget {
   }
 }
 
-class AnimatedButton extends StatefulWidget {
+class AnimatedButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
 
@@ -193,53 +202,35 @@ class AnimatedButton extends StatefulWidget {
   });
 
   @override
-  _AnimatedButtonState createState() => _AnimatedButtonState();
-}
-
-class _AnimatedButtonState extends State<AnimatedButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final RxBool isTapped = false.obs;
+
     return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
+      onTapDown: (_) => isTapped.value = true,
       onTapUp: (_) {
-        _controller.reverse();
-        widget.onPressed();
+        isTapped.value = false;
+        onPressed();
       },
-      onTapCancel: () => _controller.reverse(),
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: ElevatedButton(
-              onPressed: widget.onPressed,
-              child: Text(widget.text),
+      onTapCancel: () => isTapped.value = false,
+      child: Obx(
+        () => AnimatedScale(
+          scale: isTapped.value ? 0.95 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          child: ElevatedButton(
+            onPressed: onPressed,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 8),
             ),
-          );
-        },
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -326,7 +317,8 @@ class _AnimatedImageToCartState extends State<AnimatedImageToCart>
             width: 50,
             height: 50,
             fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+            errorBuilder: (context, error, stackTrace) =>
+                const Icon(Icons.error),
           ),
         ),
       ),

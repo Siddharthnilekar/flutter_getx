@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getx_chapter_1/app/modules/product/controllers/cart_controller.dart';
-import 'package:getx_chapter_1/app/modules/product/view/checkout_view.dart';
 
 class CartView extends StatelessWidget {
   final CartController cartController = Get.find<CartController>();
@@ -49,14 +48,58 @@ class CartView extends StatelessWidget {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
-            AnimatedButton(
-              text: 'proceed_to_checkout'.tr,
-              onPressed: () => Get.toNamed('/checkout'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: AnimatedButton(
+                text: 'proceed_to_checkout'.tr,
+                onPressed: () => Get.toNamed('/checkout'),
+              ),
             ),
             SizedBox(height: 16),
           ],
         );
       }),
+    );
+  }
+}
+
+class AnimatedButton extends StatelessWidget {
+  final String text;
+  final VoidCallback onPressed;
+
+  AnimatedButton({required this.text, required this.onPressed, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final RxBool isTapped = false.obs;
+
+    return GestureDetector(
+      onTapDown: (_) => isTapped.value = true,
+      onTapUp: (_) {
+        isTapped.value = false;
+        onPressed();
+      },
+      onTapCancel: () => isTapped.value = false,
+      child: Obx(
+        () => AnimatedScale(
+          scale: isTapped.value ? 0.95 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          child: ElevatedButton(
+            onPressed: onPressed,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+            ),
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

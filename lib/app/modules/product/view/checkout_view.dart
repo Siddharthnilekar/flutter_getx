@@ -1,4 +1,4 @@
-import  'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getx_chapter_1/app/modules/product/controllers/cart_controller.dart';
 
@@ -25,20 +25,23 @@ class CheckoutView extends StatelessWidget {
               style: TextStyle(fontSize: 20),
             ),
             SizedBox(height: 20),
-            AnimatedButton(
-              text: 'place_order'.tr,
-              onPressed: () {
-                cartController.cartService.clearCart();
-                Get.snackbar(
-                  'order_completed'.tr,
-                  'order_placed'.tr,
-                  snackPosition: SnackPosition.BOTTOM,
-                  duration: Duration(seconds: 2),
-                  backgroundColor: Colors.blue,
-                  colorText: Colors.white,
-                );
-                Get.offAllNamed('/product');
-              },
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: AnimatedButton(
+                text: 'place_order'.tr,
+                onPressed: () {
+                  cartController.cartService.clearCart();
+                  Get.snackbar(
+                    'order_completed'.tr,
+                    'order_placed'.tr,
+                    snackPosition: SnackPosition.BOTTOM,
+                    duration: Duration(seconds: 2),
+                    backgroundColor: Colors.blue,
+                    colorText: Colors.white,
+                  );
+                  Get.offAllNamed('/product');
+                },
+              ),
             ),
           ],
         ),
@@ -47,58 +50,42 @@ class CheckoutView extends StatelessWidget {
   }
 }
 
-class AnimatedButton extends StatefulWidget {
+class AnimatedButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
 
   AnimatedButton({required this.text, required this.onPressed});
 
   @override
-  _AnimatedButtonState createState() => _AnimatedButtonState();
-}
-
-class _AnimatedButtonState extends State<AnimatedButton> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 200),
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final RxBool isTapped = false.obs;
+
     return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
+      onTapDown: (_) => isTapped.value = true,
       onTapUp: (_) {
-        _controller.reverse();
-        widget.onPressed();
+        isTapped.value = false;
+        onPressed();
       },
-      onTapCancel: () => _controller.reverse(),
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: ElevatedButton(
-              onPressed: widget.onPressed,
-              child: Text(widget.text),
+      onTapCancel: () => isTapped.value = false,
+      child: Obx(
+        () => AnimatedScale(
+          scale: isTapped.value ? 0.95 : 1.0,
+          duration: Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          child: ElevatedButton(
+            onPressed: onPressed,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
             ),
-          );
-        },
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

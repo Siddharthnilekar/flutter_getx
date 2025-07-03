@@ -67,6 +67,43 @@ class CheckoutController extends GetxController {
   final RxString selectedPaymentMethod = 'UPI'.obs;
   final paymentMethods = ['UPI', 'Pay using card', 'Cash on Delivery', 'Net Banking', 'EMI', 'Wallet'];
   final RxString selectedUpiOption = ''.obs;
+  final RxString selectedBank = ''.obs;
+  final List<String> banks = [
+    'Airtel Payments Bank',
+    'AU Small Finance Bank',
+    'Axis Bank',
+    'Bank of Baroda (BOB)',
+    'Bank of India (BOI)',
+    'Bank of Maharashtra',
+    'Canara Bank',
+    'Central Bank of India',
+    'City Union Bank',
+    'DCB Bank (Development Credit Bank)',
+    'Equitas Small Finance Bank',
+    'Federal Bank',
+    'Fincare Small Finance Bank',
+    'HDFC Bank',
+    'ICICI Bank',
+    'IDFC FIRST Bank',
+    'Indian Bank',
+    'Indian Overseas Bank (IOB)',
+    'IndusInd Bank',
+    'India Post Payments Bank (IPPB)',
+    'Jana Small Finance Bank',
+    'Karur Vysya Bank',
+    'Kotak Mahindra Bank',
+    'NSDL Payments Bank',
+    'Paytm Payments Bank',
+    'Punjab & Sind Bank',
+    'Punjab National Bank (PNB)',
+    'RBL Bank (Ratnakar Bank)',
+    'South Indian Bank',
+    'State Bank of India (SBI)',
+    'UCO Bank',
+    'Union Bank of India',
+    'Ujjivan Small Finance Bank',
+    'YES Bank',
+  ];
   final RxString fullName = ''.obs;
   final RxString streetAddress = ''.obs;
   final RxString city = ''.obs;
@@ -325,6 +362,12 @@ class CheckoutController extends GetxController {
         return false;
       }
     }
+    if (selectedPaymentMethod.value == 'Net Banking') {
+      if (selectedBank.value.isEmpty) {
+        errorMessage.value = 'please_select_bank'.tr;
+        return false;
+      }
+    }
     return true;
   }
 
@@ -365,6 +408,7 @@ class CheckoutController extends GetxController {
       discount.value = 0.0;
       couponCode.value = '';
       selectedUpiOption.value = '';
+      selectedBank.value = '';
       Get.snackbar(
         'order_completed'.tr,
         'order_placed'.tr,

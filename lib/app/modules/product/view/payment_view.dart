@@ -56,7 +56,7 @@ class PaymentView extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final textFieldContentColor = isDarkMode ? Colors.white70 : Colors.black87;
     final iconColor = isDarkMode ? Colors.white70 : Colors.black87;
-    final buttonColor = isDarkMode ? Colors.white70 : Colors.black87;
+    final radioColor = isDarkMode ? Colors.white70 : Colors.black87; // Radio button color for dark/light theme
 
     final Map<String, String> paymentIcons = {
       'UPI': 'assets/images/upi.png',
@@ -96,198 +96,211 @@ class PaymentView extends StatelessWidget {
         elevation: isDarkMode ? 0 : 2,
         shadowColor: isDarkMode ? null : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12.0),
-        child: Obx(
-          () => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'order_summary'.tr,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Card(
-                elevation: 3,
-                color: Theme.of(context).colorScheme.surface,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'subtotal'.tr,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                          Text(
-                            '\$${cartController.totalAmount.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'discount'.tr,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                          Text(
-                            checkoutController.discount.value > 0
-                                ? '-\$${((cartController.totalAmount * checkoutController.discount.value).toStringAsFixed(2))}'
-                                : '\$0.00',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'total'.tr,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                          Text(
-                            '\$${checkoutController.discountedTotal.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 80.0), // Added bottom padding for sticky button
+            child: Obx(
+              () => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'order_summary'.tr,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'payment_methods'.tr,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 6),
-              ...checkoutController.paymentMethods.map((method) {
-                return Column(
-                  children: [
-                    Card(
-                      elevation: 3,
-                      color: Theme.of(context).colorScheme.surface,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      child: RadioListTile<String>(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        title: Text(
-                          method.tr,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 14,
-                          ),
-                        ),
-                        subtitle: Text(
-                          paymentDescriptions[method] ?? '',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                            fontSize: 12,
-                          ),
-                        ),
-                        value: method,
-                        groupValue: checkoutController.selectedPaymentMethod.value,
-                        onChanged: (value) {
-                          checkoutController.selectedPaymentMethod.value = value ?? '';
-                          if (method != 'UPI') {
-                            checkoutController.selectedUpiOption.value = '';
-                          }
-                          if (method != 'Pay using card') {
-                            checkoutController.selectCard(null);
-                          }
-                        },
-                        activeColor: textFieldContentColor,
-                        secondary: paymentIcons[method] != null
-                            ? Image.asset(
-                                paymentIcons[method]!,
-                                width: 24,
-                                height: 24,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.error,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  );
-                                },
-                              )
-                            : Icon(
-                                Icons.error,
-                                color: Theme.of(context).colorScheme.primary,
+                  const SizedBox(height: 6),
+                  Card(
+                    elevation: 3,
+                    color: Theme.of(context).colorScheme.surface,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'subtotal'.tr,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
                               ),
-                        controlAffinity: ListTileControlAffinity.leading,
+                              Text(
+                                '\$${cartController.totalAmount.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'discount'.tr,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                              Text(
+                                checkoutController.discount.value > 0
+                                    ? '-\$${((cartController.totalAmount * checkoutController.discount.value).toStringAsFixed(2))}'
+                                    : '\$0.00',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'total'.tr,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                              Text(
+                                '\$${checkoutController.discountedTotal.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    if (checkoutController.selectedPaymentMethod.value == method) ...[
-                      const SizedBox(height: 6),
-                      Card(
-                        elevation: 3,
-                        color: Theme.of(context).colorScheme.surface,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: _buildPaymentContent(
-                            context,
-                            method,
-                            upiSubOptions,
-                            checkoutController,
-                            textFieldContentColor,
-                            iconColor,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'payment_methods'.tr,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  ...checkoutController.paymentMethods.map((method) {
+                    return Column(
+                      children: [
+                        Card(
+                          elevation: 3,
+                          color: Theme.of(context).colorScheme.surface,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              children: [
+                                RadioListTile<String>(
+                                  contentPadding: const EdgeInsets.all(6.0),
+                                  title: Text(
+                                    method.tr,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    paymentDescriptions[method] ?? '',
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  value: method,
+                                  groupValue: checkoutController.selectedPaymentMethod.value,
+                                  onChanged: (value) {
+                                    checkoutController.selectedPaymentMethod.value = value ?? '';
+                                    if (method != 'UPI') {
+                                      checkoutController.selectedUpiOption.value = '';
+                                    }
+                                    if (method != 'Pay using card') {
+                                      checkoutController.selectCard(null);
+                                    }
+                                    if (method != 'Net Banking') {
+                                      checkoutController.selectedBank.value = '';
+                                    }
+                                  },
+                                  activeColor: radioColor, // Light in dark theme, dark in light theme
+                                  secondary: paymentIcons[method] != null
+                                      ? Image.asset(
+                                          paymentIcons[method]!,
+                                          width: 40,
+                                          height: 40,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Icon(
+                                              Icons.error,
+                                              color: Theme.of(context).colorScheme.primary,
+                                              size: 40,
+                                            );
+                                          },
+                                        )
+                                      : Icon(
+                                          Icons.error,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          size: 40,
+                                        ),
+                                  controlAffinity: ListTileControlAffinity.leading,
+                                ),
+                                if (checkoutController.selectedPaymentMethod.value == method) ...[
+                                  const Divider(height: 12),
+                                  _buildPaymentContent(
+                                    context,
+                                    method,
+                                    upiSubOptions,
+                                    checkoutController,
+                                    textFieldContentColor,
+                                    iconColor,
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ],
-                );
-              }).toList(),
-              const SizedBox(height: 12),
-              Center(
+                        const SizedBox(height: 12),
+                      ],
+                    );
+                  }).toList(),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 16,
+            left: 16,
+            right: 16,
+            child: SafeArea(
+              child: Center(
                 child: AnimatedButton(
                   text: checkoutController.isPlacingOrder.value ? 'placing_order'.tr : 'place_order'.tr,
                   onPressed: checkoutController.isPlacingOrder.value ? null : () => checkoutController.placeOrder(),
                   icon: checkoutController.isPlacingOrder.value ? Icons.hourglass_empty : Icons.check_circle,
                   isDarkMode: isDarkMode,
                   isLoading: checkoutController.isPlacingOrder.value,
-                  buttonColor: buttonColor,
                 ),
               ),
-              const SizedBox(height: 12),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -300,6 +313,8 @@ class PaymentView extends StatelessWidget {
     Color textFieldContentColor,
     Color iconColor,
   ) {
+    final radioColor = Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87; // Radio button color for dark/light theme
+
     switch (method) {
       case 'UPI':
         return Column(
@@ -308,28 +323,31 @@ class PaymentView extends StatelessWidget {
             Text(
               'select_upi_option'.tr,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 12,
+              runSpacing: 12,
               children: upiSubOptions.entries.map((entry) {
                 return GestureDetector(
                   onTap: () => checkoutController.selectedUpiOption.value = entry.key,
                   child: Obx(
-                    () => Container(
-                      padding: const EdgeInsets.all(8),
+                    () => AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: checkoutController.selectedUpiOption.value == entry.key
                               ? Theme.of(context).colorScheme.primary
                               : Colors.grey,
+                          width: checkoutController.selectedUpiOption.value == entry.key ? 2 : 1,
                         ),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Column(
                         children: [
@@ -341,10 +359,11 @@ class PaymentView extends StatelessWidget {
                               return Icon(
                                 Icons.error,
                                 color: Theme.of(context).colorScheme.primary,
+                                size: 40,
                               );
                             },
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Text(
                             entry.key.tr,
                             style: TextStyle(
@@ -370,7 +389,7 @@ class PaymentView extends StatelessWidget {
               Text(
                 'select_saved_card'.tr,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
@@ -385,10 +404,13 @@ class PaymentView extends StatelessWidget {
                   ),
                 )
               else
-                ...checkoutController.savedCards.map((card) {
+                ...checkoutController.savedCards.take(2).map((card) {
                   return Card(
-                    elevation: 2,
+                    elevation: 3,
+                    color: Theme.of(context).colorScheme.surface,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     child: RadioListTile<CardDetails>(
+                      contentPadding: const EdgeInsets.all(6.0),
                       title: Text(
                         '**** **** **** ${card.cardNumber.substring(card.cardNumber.length - 4)}',
                         style: TextStyle(
@@ -407,8 +429,7 @@ class PaymentView extends StatelessWidget {
                       value: card,
                       groupValue: checkoutController.selectedCard.value,
                       onChanged: (value) => checkoutController.selectCard(value),
-                      activeColor: textFieldContentColor,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      activeColor: radioColor, // Light in dark theme, dark in light theme
                       secondary: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -417,7 +438,7 @@ class PaymentView extends StatelessWidget {
                             color: iconColor,
                             size: 24,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           IconButton(
                             icon: Icon(
                               Icons.delete,
@@ -433,11 +454,27 @@ class PaymentView extends StatelessWidget {
                     ),
                   );
                 }).toList(),
+              if (checkoutController.savedCards.length > 2)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: TextButton(
+                    onPressed: () {
+                      // Logic to show more cards (e.g., navigate to a new screen or expand)
+                    },
+                    child: Text(
+                      'Show more cards',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ),
               const SizedBox(height: 12),
               Text(
                 'card_details'.tr,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
@@ -453,7 +490,8 @@ class PaymentView extends StatelessWidget {
                   ),
                   prefixIcon: Icon(
                     Icons.credit_card,
-                    color: iconColor,
+                    color: textFieldContentColor,
+                    size: 24,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -486,6 +524,7 @@ class PaymentView extends StatelessWidget {
                   ),
                   filled: true,
                   fillColor: Theme.of(context).colorScheme.surface.withOpacity(0.2),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                 ),
                 style: TextStyle(color: textFieldContentColor, fontSize: 14),
                 cursorColor: textFieldContentColor,
@@ -510,7 +549,8 @@ class PaymentView extends StatelessWidget {
                         ),
                         prefixIcon: Icon(
                           Icons.calendar_today,
-                          color: iconColor,
+                          color: textFieldContentColor,
+                          size: 24,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -543,6 +583,7 @@ class PaymentView extends StatelessWidget {
                         ),
                         filled: true,
                         fillColor: Theme.of(context).colorScheme.surface.withOpacity(0.2),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                       ),
                       style: TextStyle(
                         color: textFieldContentColor,
@@ -570,7 +611,8 @@ class PaymentView extends StatelessWidget {
                         ),
                         prefixIcon: Icon(
                           Icons.lock,
-                          color: iconColor,
+                          color: textFieldContentColor,
+                          size: 24,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -603,6 +645,7 @@ class PaymentView extends StatelessWidget {
                         ),
                         filled: true,
                         fillColor: Theme.of(context).colorScheme.surface.withOpacity(0.2),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                       ),
                       style: TextStyle(
                         color: textFieldContentColor,
@@ -623,17 +666,82 @@ class PaymentView extends StatelessWidget {
             ],
           ),
         );
+      case 'Net Banking':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'select_bank'.tr,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Obx(
+              () => DropdownButtonFormField<String>(
+                value: checkoutController.selectedBank.value.isEmpty ? null : checkoutController.selectedBank.value,
+                hint: Text(
+                  'choose_an_option'.tr,
+                  style: TextStyle(
+                    color: textFieldContentColor.withOpacity(0.7),
+                    fontSize: 14,
+                  ),
+                ),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: textFieldContentColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: textFieldContentColor),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: textFieldContentColor,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surface.withOpacity(0.2),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                ),
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                  color: iconColor,
+                  size: 24,
+                ),
+                style: TextStyle(
+                  color: textFieldContentColor,
+                  fontSize: 14,
+                ),
+                items: checkoutController.banks.map((String bank) {
+                  return DropdownMenuItem<String>(
+                    value: bank,
+                    child: Text(bank.tr, style: TextStyle(fontSize: 14)),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    checkoutController.selectedBank.value = newValue;
+                  }
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'please_select_bank'.tr;
+                  }
+                  return null;
+                },
+              ),
+            ),
+          ],
+        );
       case 'Cash on Delivery':
         return Text(
           'pay_at_delivery'.tr,
-          style: TextStyle(
-            fontSize: 14,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        );
-      case 'Net Banking':
-        return Text(
-          'select_bank_to_proceed'.tr,
           style: TextStyle(
             fontSize: 14,
             color: Theme.of(context).colorScheme.onSurface,
@@ -684,7 +792,6 @@ class AnimatedButton extends StatelessWidget {
   final IconData? icon;
   final bool isDarkMode;
   final bool isLoading;
-  final Color buttonColor;
 
   const AnimatedButton({
     required this.text,
@@ -692,7 +799,6 @@ class AnimatedButton extends StatelessWidget {
     this.icon,
     required this.isDarkMode,
     this.isLoading = false,
-    required this.buttonColor,
     super.key,
   });
 
@@ -712,12 +818,12 @@ class AnimatedButton extends StatelessWidget {
       child: Obx(
         () => AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
+          curve: Curves.bounceOut,
           transform: Matrix4.identity()..scale((isTapped.value && !isLoading) ? 0.95 : 1.0),
           child: Container(
             decoration: BoxDecoration(
-              color: buttonColor,
-              borderRadius: BorderRadius.circular(12),
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
@@ -729,11 +835,11 @@ class AnimatedButton extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onPressed,
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
               child: Row(
@@ -741,28 +847,28 @@ class AnimatedButton extends StatelessWidget {
                 children: [
                   if (isLoading) ...[
                     const SizedBox(
-                      width: 18,
-                      height: 18,
+                      width: 16,
+                      height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation(Colors.white),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                   ] else if (icon != null) ...[
                     Icon(
                       icon,
-                      color: Colors.white,
-                      size: 20,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      size: 18,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                   ],
                   Text(
                     text,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],

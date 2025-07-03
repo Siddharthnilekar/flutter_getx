@@ -62,55 +62,42 @@ class CardDetails {
 class CheckoutController extends GetxController {
   final CartController cartController = Get.find<CartController>();
   final storage = GetStorage();
+  final formKey = GlobalKey<FormState>();
 
-  // Reactive variables for payment method
-  final RxString selectedPaymentMethod = 'GPay'.obs; // Default to recommended GPay
-  final paymentMethods = ['GPay', 'Other UPI', 'Credit Card', 'PayPal', 'Cash on Delivery'];
-
-  // Reactive variables for address fields
+  final RxString selectedPaymentMethod = 'UPI'.obs;
+  final paymentMethods = ['UPI', 'Pay using card', 'Cash on Delivery', 'Net Banking', 'EMI', 'Wallet'];
+  final RxString selectedUpiOption = ''.obs;
   final RxString fullName = ''.obs;
   final RxString streetAddress = ''.obs;
   final RxString city = ''.obs;
   final RxString postalCode = ''.obs;
   final RxString country = ''.obs;
-
-  // Reactive variables for card details
   final RxString cardNumber = ''.obs;
   final RxString expiryDate = ''.obs;
   final RxString cvv = ''.obs;
-
-  // Coupon code
   final RxString couponCode = ''.obs;
   final RxDouble discount = 0.0.obs;
-
-  // Stored addresses and card details
   final RxList<Address> savedAddresses = <Address>[].obs;
   final Rx<Address?> selectedAddress = Rx<Address?>(null);
   final RxList<CardDetails> savedCards = <CardDetails>[].obs;
   final Rx<CardDetails?> selectedCard = Rx<CardDetails?>(null);
-
-  // Validation status and loading
   final RxString errorMessage = ''.obs;
   final RxBool isPlacingOrder = false.obs;
 
   @override
   void onInit() {
     super.onInit();
-    // Load saved addresses and cards from storage
     loadSavedData();
-    // Set default address
     if (savedAddresses.isNotEmpty) {
       selectAddress(savedAddresses.first);
     }
   }
 
-  // Load saved addresses and cards
   void loadSavedData() {
     final List<dynamic>? storedAddresses = storage.read('addresses');
     if (storedAddresses != null) {
       savedAddresses.assignAll(storedAddresses.map((e) => Address.fromJson(e)).toList());
     } else {
-      // Default address
       savedAddresses.add(Address(
         fullName: 'Siddharth Laxman Nilekar',
         streetAddress: 'Room no.135, 4th floor, Vikrant Sadan, Saneguruji Marg, Chinchpokli',
@@ -125,13 +112,11 @@ class CheckoutController extends GetxController {
     }
   }
 
-  // Save addresses and cards
   void saveData() {
     storage.write('addresses', savedAddresses.map((e) => e.toJson()).toList());
     storage.write('cards', savedCards.map((e) => e.toJson()).toList());
   }
 
-  // Select an address
   void selectAddress(Address? address) {
     selectedAddress.value = address;
     if (address != null) {
@@ -149,7 +134,6 @@ class CheckoutController extends GetxController {
     }
   }
 
-  // Select a card
   void selectCard(CardDetails? card) {
     selectedCard.value = card;
     if (card != null) {
@@ -163,7 +147,22 @@ class CheckoutController extends GetxController {
     }
   }
 
-  // Add a new address
+  void removeCard(CardDetails card) {
+    savedCards.remove(card);
+    saveData();
+    if (selectedCard.value == card) {
+      selectCard(null);
+    }
+    Get.snackbar(
+      'card_removed'.tr,
+      'card_removed_successfully'.tr,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: Duration(seconds: 2),
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+    );
+  }
+
   void addNewAddress() {
     if (validateInputs()) {
       final newAddress = Address(
@@ -176,7 +175,7 @@ class CheckoutController extends GetxController {
       savedAddresses.add(newAddress);
       selectAddress(newAddress);
       saveData();
-      Get.back(); // Return to checkout page
+      Get.back();
       Get.snackbar(
         'address_saved'.tr,
         'address_added_successfully'.tr,
@@ -197,7 +196,6 @@ class CheckoutController extends GetxController {
     }
   }
 
-  // Update an existing address
   void updateAddress(int index) {
     if (validateInputs()) {
       savedAddresses[index] = Address(
@@ -230,10 +228,9 @@ class CheckoutController extends GetxController {
     }
   }
 
-  // Apply coupon code
   void applyCoupon() {
     if (couponCode.value.trim().toLowerCase() == 'sid10') {
-      discount.value = 0.1; // 10% discount
+      discount.value = 0.1;
       Get.snackbar(
         'coupon_applied'.tr,
         'discount_applied'.tr,
@@ -255,7 +252,6 @@ class CheckoutController extends GetxController {
     }
   }
 
-  // Validate inputs
   bool validateInputs() {
     errorMessage.value = '';
     if (selectedPaymentMethod.value.isEmpty) {
@@ -278,21 +274,43 @@ class CheckoutController extends GetxController {
       errorMessage.value = 'please_enter_postal_code'.tr;
       return false;
     }
-    if (selectedPaymentMethod.value == 'Credit Card') {
-      if (cardNumber.value.trim().isEmpty) {
-        errorMessage.value = 'please_enter_card_number'.tr;
-        return false;
-      }
-      if (expiryDate.value.trim().isEmpty) {
-        errorMessage.value = 'please_enter_expiry_date'.tr;
-        return false;
-      }
-      if (cvv.value.trim().isEmpty) {
-        errorMessage.value = 'please_enter_cvv'.tr;
-        return false;
-      }
-      // Save card details
+    if (selectedPaymentMethod.value == 'Pay using card') {
       if (selectedCard.value == null) {
+        if (cardNumber.value.trim().isEmpty) {
+          errorMessage.value = 'please_enter_card_number'.tr;
+          return false;
+        }
+        final cleanCardNumber = cardNumber.value.replaceAll(RegExp(r'\D'), '');
+        if (cleanCardNumber.length != 16) {
+          errorMessage.value = 'card_number_must_be_16_digits'.tr;
+          return false;
+        }
+        if (expiryDate.value.trim().isEmpty) {
+          errorMessage.value = 'please_enter_expiry_date'.tr;
+          return false;
+        }
+        final RegExp expiryRegExp = RegExp(r'^(0[1-9]|1[0-2])\/[0-9]{2}$');
+        if (!expiryRegExp.hasMatch(expiryDate.value)) {
+          errorMessage.value = 'invalid_expiry_date_format'.tr;
+          return false;
+        }
+        final now = DateTime.now();
+        final parts = expiryDate.value.split('/');
+        final month = int.parse(parts[0]);
+        final year = int.parse('20${parts[1]}');
+        final expiry = DateTime(year, month + 1);
+        if (expiry.isBefore(now)) {
+          errorMessage.value = 'card_is_expired'.tr;
+          return false;
+        }
+        if (cvv.value.trim().isEmpty) {
+          errorMessage.value = 'please_enter_cvv'.tr;
+          return false;
+        }
+        if (cvv.value.length != 3) {
+          errorMessage.value = 'cvv_must_be_3_digits'.tr;
+          return false;
+        }
         savedCards.add(CardDetails(
           cardNumber: cardNumber.value,
           expiryDate: expiryDate.value,
@@ -301,16 +319,20 @@ class CheckoutController extends GetxController {
         saveData();
       }
     }
+    if (selectedPaymentMethod.value == 'UPI') {
+      if (selectedUpiOption.value.isEmpty) {
+        errorMessage.value = 'please_select_upi_option'.tr;
+        return false;
+      }
+    }
     return true;
   }
 
-  // Calculate discounted total
   double get discountedTotal {
-    final total = cartController.totalAmount; // Assumes totalAmount is double
+    final total = cartController.totalAmount;
     return total * (1 - discount.value);
   }
 
-  // Place order
   void placeOrder() async {
     if (cartController.cartItems.isEmpty) {
       Get.snackbar(
@@ -323,12 +345,26 @@ class CheckoutController extends GetxController {
       );
       return;
     }
+    if (selectedPaymentMethod.value == 'Pay using card' && selectedCard.value == null) {
+      if (!formKey.currentState!.validate()) {
+        Get.snackbar(
+          'error'.tr,
+          errorMessage.value.isNotEmpty ? errorMessage.value : 'please_correct_form_errors'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+    }
     if (validateInputs()) {
       isPlacingOrder.value = true;
-      await Future.delayed(Duration(seconds: 2)); // Simulate API call
+      await Future.delayed(Duration(seconds: 2));
       cartController.cartService.clearCart();
       discount.value = 0.0;
       couponCode.value = '';
+      selectedUpiOption.value = '';
       Get.snackbar(
         'order_completed'.tr,
         'order_placed'.tr,

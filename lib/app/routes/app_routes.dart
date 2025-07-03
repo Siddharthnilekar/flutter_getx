@@ -5,4 +5,6 @@ class Routes {
   static const PRODUCT_DETAILS = '/product-details';
   static const CART = '/cart';
   static const CHECKOUT = '/checkout';
+  static const PAYMENT = '/payment';
+  static const ADDRESS_SELECTION = '/address-selection';
 }

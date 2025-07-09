@@ -16,7 +16,8 @@ class ThemeService {
   }
 
   // Get current theme mode
-  ThemeMode get theme => _loadThemeFromStorage() ? ThemeMode.dark : ThemeMode.light;
+  ThemeMode get theme =>
+      _loadThemeFromStorage() ? ThemeMode.dark : ThemeMode.light;
 
   // Switch theme and save to storage
   void switchTheme() {

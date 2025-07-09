@@ -1,16 +1,40 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:flutter/services.dart';
 import 'package:getx_chapter_1/app/modules/product/controllers/cart_controller.dart';
 import 'package:getx_chapter_1/app/modules/product/controllers/checkout_controller.dart';
 
 class PaymentView extends StatelessWidget {
   final CheckoutController checkoutController = Get.find<CheckoutController>();
   final CartController cartController = Get.find<CartController>();
+  final RxString localPaymentStatus = ''.obs;
+  final RxString qrTimer = '6:47'.obs;
+  Timer? _timer;
 
-  PaymentView({super.key});
+  PaymentView({super.key}) {
+    _startQrTimer();
+  }
 
-  // Validation functions
+  void _startQrTimer() {
+    const initialSeconds = 6 * 60 + 47;
+    int remainingSeconds = initialSeconds;
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (remainingSeconds > 0) {
+        remainingSeconds--;
+        final minutes = remainingSeconds ~/ 60;
+        final seconds = remainingSeconds % 60;
+        qrTimer.value = '$minutes:${seconds.toString().padLeft(2, '0')}';
+      } else {
+        timer.cancel();
+        qrTimer.value = '0:00';
+      }
+    });
+  }
+
   String? _validateCardNumber(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter card number'.tr;
@@ -51,49 +75,124 @@ class PaymentView extends StatelessWidget {
     return null;
   }
 
+  void _selectPaymentMethod(String method) {
+    checkoutController.selectedPaymentMethod.value = method;
+    localPaymentStatus.value = '$method selected';
+    checkoutController.selectedUpiOption.value = '';
+    checkoutController.selectCard(null);
+    checkoutController.selectedBank.value = '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final textFieldContentColor = isDarkMode ? Colors.white70 : Colors.black87;
     final iconColor = isDarkMode ? Colors.white70 : Colors.black87;
-    final radioColor = isDarkMode ? Colors.white70 : Colors.black87;
 
     final Map<String, String> paymentIcons = {
-      'UPI': 'assets/images/upi.png',
-      'Pay using card': 'assets/images/credit_card.png',
-      'Cash on Delivery': 'assets/images/cod.png',
+      'Card': 'assets/images/credit_card.png',
+      'UPI / QR': 'assets/images/bhim_upi.png',
       'Net Banking': 'assets/images/net_banking.png',
-      'EMI': 'assets/images/emi.png',
       'Wallet': 'assets/images/wallet.png',
     };
-    final Map<String, String> paymentDescriptions = {
-      'UPI': 'Pay with UPI apps'.tr,
-      'Pay using card': 'All cards supported'.tr,
-      'Cash on Delivery': 'Pay at delivery'.tr,
-      'Net Banking': 'All Indian banks'.tr,
-      'EMI': 'Card, EMI options'.tr,
-      'Wallet': 'Digital wallets'.tr,
+    final Map<String, Widget> paymentDescriptions = {
+      'Card': Row(
+        children: [
+          Image.asset(
+            'assets/images/all_card_logo.png',
+            width: 80,
+            height: 36,
+            errorBuilder: (context, error, stackTrace) => Icon(
+              Icons.error,
+              color: Theme.of(context).colorScheme.primary,
+              size: 36,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '& more'.tr,
+            style: GoogleFonts.poppins(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+      'UPI / QR': Row(
+        children: [
+          Image.asset(
+            'assets/images/google_pay.png',
+            width: 20,
+            height: 36,
+            errorBuilder: (context, error, stackTrace) => Icon(
+              Icons.error,
+              color: Theme.of(context).colorScheme.primary,
+              size: 36,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Image.asset(
+            'assets/images/phonepe.png',
+            width: 20,
+            height: 36,
+            errorBuilder: (context, error, stackTrace) => Icon(
+              Icons.error,
+              color: Theme.of(context).colorScheme.primary,
+              size: 36,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Image.asset(
+            'assets/images/paytm.png',
+            width: 20,
+            height: 36,
+            errorBuilder: (context, error, stackTrace) => Icon(
+              Icons.error,
+              color: Theme.of(context).colorScheme.primary,
+              size: 36,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '& more'.tr,
+            style: GoogleFonts.poppins(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+      'Net Banking': Text(
+        'All Indian Banks'.tr,
+        style: GoogleFonts.poppins(
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+          fontSize: 10,
+        ),
+      ),
+      'Wallet': Text(
+        'Pay Using Wallet'.tr,
+        style: GoogleFonts.poppins(
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+          fontSize: 10,
+        ),
+      ),
     };
-    final Map<String, String> upiSubOptions = {
-      'Google Pay': 'assets/images/google_pay.png',
-      'PhonePe': 'assets/images/phonepe.png',
-      'Paytm': 'assets/images/paytm.png',
-      'Other': 'assets/images/other.png',
-    };
+    final List<String> paymentMethods = ['Card', 'UPI / QR', 'Net Banking', 'Wallet'];
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'payment'.tr,
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 16,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: isDarkMode ? 0 : 1,
+        elevation: isDarkMode ? 0 : 2,
+        shadowColor: isDarkMode ? null : Colors.black26,
       ),
       body: Stack(
         children: [
@@ -103,190 +202,227 @@ class PaymentView extends StatelessWidget {
               () => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Order summary'.tr,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 1),
                   Card(
-                    elevation: 2,
-                    color: Theme.of(context).colorScheme.surface,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Subtotal'.tr,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                              Text(
-                                '\$${cartController.totalAmount.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 1),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Discount'.tr,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                              Text(
-                                checkoutController.discount.value > 0
-                                    ? '-\$${((cartController.totalAmount * checkoutController.discount.value).toStringAsFixed(2))}'
-                                    : '\$0.00',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'total'.tr,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                              Text(
-                                '\$${checkoutController.discountedTotal.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                    elevation: 4,
+                    color: isDarkMode ? Colors.grey[800] : Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isDarkMode
+                              ? [Colors.purple.shade700, Colors.purple.shade500]
+                              : [const Color.fromARGB(255, 253, 253, 253), const Color.fromARGB(255, 238, 212, 243)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'How would you like to pay?'.tr,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 1),
-                  ...checkoutController.paymentMethods.map((method) {
-                    return Column(
-                      children: [
-                        Card(
-                          elevation: 2,
-                          color: Theme.of(context).colorScheme.surface,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0), 
-                            child: Column(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
                               children: [
-                                RadioListTile<String>(
-                                  contentPadding: const EdgeInsets.all(1.0),
-                                  title: Text(
-                                    method.tr,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                      fontSize: 12,
-                                    ),
+                                const SizedBox(height: 1),
+                                Image.asset(
+                                  'assets/images/qr-code.png',
+                                  width: 100,
+                                  height: 100,
+                                  errorBuilder: (context, error, stackTrace) => Icon(
+                                    Icons.error,
+                                    color: Theme.of(context).colorScheme.error,
+                                    size: 150,
                                   ),
-                                  subtitle: Text(
-                                    paymentDescriptions[method] ?? '',
-                                    style: TextStyle(
-                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                                      fontSize: 10,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  value: method,
-                                  groupValue: checkoutController.selectedPaymentMethod.value,
-                                  onChanged: (value) {
-                                    checkoutController.selectedPaymentMethod.value = value ?? '';
-                                    if (method != 'UPI') {
-                                      checkoutController.selectedUpiOption.value = '';
-                                    }
-                                    if (method != 'Pay using card') {
-                                      checkoutController.selectCard(null);
-                                    }
-                                    if (method != 'Net Banking') {
-                                      checkoutController.selectedBank.value = '';
-                                    }
-                                  },
-                                  activeColor: radioColor,
-                                  secondary: Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: paymentIcons[method] != null
-                                        ? Image.asset(
-                                            paymentIcons[method]!,
-                                            width: 32,
-                                            height: 32,
-                                            errorBuilder: (context, error, stackTrace) {
-                                              return Icon(
-                                                Icons.error,
-                                                color: Theme.of(context).colorScheme.primary,
-                                                size: 32,
-                                              );
-                                            },
-                                          )
-                                        : Icon(
-                                            Icons.error,
-                                            color: Theme.of(context).colorScheme.primary,
-                                            size: 32,
-                                          ),
-                                  ),
-                                  controlAffinity: ListTileControlAffinity.leading,
-                                  dense: true,
                                 ),
-                                if (checkoutController.selectedPaymentMethod.value == method)
-                                  _buildPaymentContent(
-                                    context,
-                                    method,
-                                    upiSubOptions,
-                                    checkoutController,
-                                    textFieldContentColor,
-                                    iconColor,
-                                  ),
                               ],
                             ),
-                          ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Scan the QR using any UPI'.tr,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  Text(
+                                    'app on your phone.'.tr,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Image.asset(
+                                        'assets/images/google_pay.png',
+                                        width: 32,
+                                        height: 32,
+                                        errorBuilder: (context, error, stackTrace) => Icon(
+                                          Icons.error,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          size: 32,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Image.asset(
+                                        'assets/images/phonepe.png',
+                                        width: 32,
+                                        height: 32,
+                                        errorBuilder: (context, error, stackTrace) => Icon(
+                                          Icons.error,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          size: 32,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Image.asset(
+                                        'assets/images/paytm.png',
+                                        width: 32,
+                                        height: 32,
+                                        errorBuilder: (context, error, stackTrace) => Icon(
+                                          Icons.error,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          size: 32,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Image.asset(
+                                        'assets/images/bhim_upi.png',
+                                        width: 32,
+                                        height: 32,
+                                        errorBuilder: (context, error, stackTrace) => Icon(
+                                          Icons.error,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          size: 32,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'QR Code is valid for'.tr,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  Text(
+                                    qrTimer.value,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 2),
-                      ],
-                    );
-                  }).toList(),
+                      ),
+                    ),
+                  ).animate().fadeIn(duration: 500.ms, delay: 100.ms),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Cards, Upi & More'.tr,
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ).animate().fadeIn(duration: 500.ms, delay: 400.ms),
+                  const SizedBox(height: 8),
+                  Card(
+                    elevation: 4,
+                    color: isDarkMode ? Colors.grey[800] : Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isDarkMode
+                              ? [const Color.fromARGB(255, 187, 211, 208), const Color.fromARGB(255, 212, 231, 229)]
+                              : [const Color.fromARGB(255, 241, 233, 244), const Color.fromARGB(255, 255, 255, 255)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+                        child: Column(
+                          children: paymentMethods.asMap().entries.map((entry) {
+                            final method = entry.value;
+                            return Column(
+                              children: [
+                                GestureDetector(
+                                  onTap: () => _selectPaymentMethod(method),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8.0),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: checkoutController.selectedPaymentMethod.value == method
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Colors.grey,
+                                        width: 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        paymentIcons[method] != null
+                                            ? Image.asset(
+                                                paymentIcons[method]!,
+                                                width: 36,
+                                                height: 36,
+                                                errorBuilder: (context, error, stackTrace) => Icon(
+                                                  Icons.error,
+                                                  color: Theme.of(context).colorScheme.primary,
+                                                  size: 36,
+                                                ),
+                                              )
+                                            : Icon(
+                                                Icons.error,
+                                                color: Theme.of(context).colorScheme.primary,
+                                                size: 36,
+                                              ),
+                                        const SizedBox(width: 24),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                method.tr,
+                                                style: GoogleFonts.poppins(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Theme.of(context).colorScheme.onSurface,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              paymentDescriptions[method] ?? const SizedBox.shrink(),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                if (entry.key < paymentMethods.length - 1) const SizedBox(height: 8),
+                              ],
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ).animate().fadeIn(duration: 500.ms, delay: 500.ms),
                 ],
               ),
             ),
@@ -303,6 +439,11 @@ class PaymentView extends StatelessWidget {
                   icon: checkoutController.isPlacingOrder.value ? Icons.hourglass_empty : Icons.check_circle,
                   isDarkMode: isDarkMode,
                   isLoading: checkoutController.isPlacingOrder.value,
+                  gradient: LinearGradient(
+                    colors: isDarkMode
+                        ? [Colors.blue.shade700, Colors.blue.shade400]
+                        : [const Color.fromARGB(255, 178, 202, 240), const Color.fromARGB(255, 96, 160, 220)],
+                  ),
                 ),
               ),
             ),
@@ -310,330 +451,6 @@ class PaymentView extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Widget _buildPaymentContent(
-    BuildContext context,
-    String method,
-    Map<String, String> upiSubOptions,
-    CheckoutController checkoutController,
-    Color textFieldContentColor,
-    Color iconColor,
-  ) {
-    final radioColor = Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87;
-
-    switch (method) {
-      case 'UPI':
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: upiSubOptions.entries.map((entry) {
-            return Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => checkoutController.selectedUpiOption.value = entry.key,
-                      child: Obx(
-                        () => Container(
-                          height: 60,
-                          padding: const EdgeInsets.all(1),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: checkoutController.selectedUpiOption.value == entry.key
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.grey,
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                entry.value,
-                                width: 28,
-                                height: 28,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.error,
-                                    color: Theme.of(context).colorScheme.primary,
-                                    size: 28,
-                                  );
-                                },
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                entry.key.tr,
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                                ),
-                                textAlign: TextAlign.center,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (entry.key != upiSubOptions.keys.last) const SizedBox(width: 8),
-                ],
-              ),
-            );
-          }).toList(),
-        );
-      case 'Pay using card':
-        return Form(
-          key: checkoutController.formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (checkoutController.savedCards.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Select saved card'.tr,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 1),
-                    ...checkoutController.savedCards.take(2).map((card) {
-                      return RadioListTile<CardDetails>(
-                        contentPadding: const EdgeInsets.all(1.0),
-                        title: Text(
-                          '**** **** **** ${card.cardNumber.substring(card.cardNumber.length - 4)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                        subtitle: Text(
-                          'Expires: ${card.expiryDate}',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                            fontSize: 10,
-                          ),
-                        ),
-                        value: card,
-                        groupValue: checkoutController.selectedCard.value,
-                        onChanged: (value) => checkoutController.selectCard(value),
-                        activeColor: radioColor,
-                        secondary: Icon(
-                          Icons.credit_card,
-                          color: iconColor,
-                          size: 28,
-                        ),
-                        controlAffinity: ListTileControlAffinity.leading,
-                        dense: true,
-                      );
-                    }).toList(),
-                  ],
-                ),
-              const SizedBox(height: 2),
-              TextFormField(
-                onChanged: (value) => checkoutController.cardNumber.value = value,
-                decoration: InputDecoration(
-                  labelText: 'card number'.tr,
-                  labelStyle: TextStyle(color: textFieldContentColor, fontSize: 12),
-                  prefixIcon: Icon(Icons.credit_card, color: textFieldContentColor, size: 22),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(color: textFieldContentColor),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: textFieldContentColor),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: textFieldContentColor, width: 1.5),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.redAccent, width: 1.5),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.redAccent, width: 1.5),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface.withOpacity(0.2),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-                ),
-                style: TextStyle(color: textFieldContentColor, fontSize: 12),
-                cursorColor: textFieldContentColor,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(16),
-                ],
-                validator: _validateCardNumber,
-              ),
-              const SizedBox(height: 7),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      onChanged: (value) => checkoutController.expiryDate.value = value,
-                      decoration: InputDecoration(
-                        labelText: 'expiry date'.tr,
-                        labelStyle: TextStyle(color: textFieldContentColor, fontSize: 12),
-                        prefixIcon: Icon(Icons.calendar_today, color: textFieldContentColor, size: 22),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: textFieldContentColor),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: textFieldContentColor),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: textFieldContentColor, width: 1.5),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.redAccent, width: 1.5),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.redAccent, width: 1.5),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        filled: true,
-                        fillColor: Theme.of(context).colorScheme.surface.withOpacity(0.2),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-                      ),
-                      style: TextStyle(color: textFieldContentColor, fontSize: 12),
-                      cursorColor: textFieldContentColor,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
-                        LengthLimitingTextInputFormatter(5),
-                        _ExpiryDateInputFormatter(),
-                      ],
-                      validator: _validateExpiryDate,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: TextFormField(
-                      onChanged: (value) => checkoutController.cvv.value = value,
-                      decoration: InputDecoration(
-                        labelText: 'cvv'.tr,
-                        labelStyle: TextStyle(color: textFieldContentColor, fontSize: 12),
-                        prefixIcon: Icon(Icons.lock, color: textFieldContentColor, size: 22),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: textFieldContentColor),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: textFieldContentColor),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: textFieldContentColor, width: 1.5),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.redAccent, width: 1.5),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.redAccent, width: 1.5),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        filled: true,
-                        fillColor: Theme.of(context).colorScheme.surface.withOpacity(0.2),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-                      ),
-                      style: TextStyle(color: textFieldContentColor, fontSize: 12),
-                      cursorColor: textFieldContentColor,
-                      keyboardType: TextInputType.number,
-                      obscureText: true,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(3),
-                      ],
-                      validator: _validateCvv,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      case 'Net Banking':
-        return Obx(
-          () => DropdownButtonFormField<String>(
-            value: checkoutController.selectedBank.value.isEmpty ? null : checkoutController.selectedBank.value,
-            hint: Text(
-              'Choose an option'.tr,
-              style: TextStyle(
-                color: textFieldContentColor.withOpacity(0.7),
-                fontSize: 12,
-              ),
-            ),
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
-                borderSide: BorderSide(color: textFieldContentColor),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: textFieldContentColor),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: textFieldContentColor, width: 1.5),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              filled: true,
-              fillColor: Theme.of(context).colorScheme.surface.withOpacity(0.2),
-              contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-            ),
-            icon: Icon(Icons.arrow_drop_down, color: iconColor, size: 28),
-            style: TextStyle(color: textFieldContentColor, fontSize: 12),
-            items: checkoutController.banks.map((String bank) {
-              return DropdownMenuItem<String>(
-                value: bank,
-                child: Text(bank.tr, style: TextStyle(fontSize: 12)),
-              );
-            }).toList(),
-            onChanged: (String? newValue) {
-              if (newValue != null) {
-                checkoutController.selectedBank.value = newValue;
-              }
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select bank'.tr;
-              }
-              return null;
-            },
-          ),
-        );
-      case 'Cash on Delivery':
-      case 'EMI':
-      case 'Wallet':
-        return Text(
-          method == 'Cash on Delivery'
-              ? 'you will need to pay cash when deliveryman arrives'.tr
-              : method == 'EMI'
-                  ? 'select_emi_option'.tr
-                  : 'select_wallet_to_proceed'.tr,
-          style: TextStyle(
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        );
-      default:
-        return const SizedBox.shrink();
-    }
   }
 }
 
@@ -660,6 +477,7 @@ class AnimatedButton extends StatelessWidget {
   final IconData? icon;
   final bool isDarkMode;
   final bool isLoading;
+  final Gradient? gradient;
 
   const AnimatedButton({
     required this.text,
@@ -667,6 +485,7 @@ class AnimatedButton extends StatelessWidget {
     this.icon,
     required this.isDarkMode,
     this.isLoading = false,
+    this.gradient,
     super.key,
   });
 
@@ -690,24 +509,29 @@ class AnimatedButton extends StatelessWidget {
           transform: Matrix4.identity()..scale((isTapped.value && !isLoading) ? 0.95 : 1.0),
           child: Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(8),
+              gradient: gradient ??
+                  LinearGradient(
+                    colors: isDarkMode
+                        ? [Colors.grey.shade700, Colors.grey.shade500]
+                        : [Colors.grey.shade300, Colors.grey.shade100],
+                  ),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
             child: ElevatedButton(
               onPressed: onPressed,
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
               child: Row(
@@ -715,26 +539,26 @@ class AnimatedButton extends StatelessWidget {
                 children: [
                   if (isLoading) ...[
                     const SizedBox(
-                      width: 10,
-                      height: 10,
+                      width: 16,
+                      height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation(Colors.white),
                       ),
                     ),
-                    const SizedBox(width: 2),
+                    const SizedBox(width: 8),
                   ] else if (icon != null) ...[
                     Icon(
                       icon,
-                      color: isDarkMode ? Colors.white : Colors.black,
-                      size: 28,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      size: 20,
                     ),
-                    const SizedBox(width: 2),
+                    const SizedBox(width: 8),
                   ],
                   Text(
                     text,
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -748,3 +572,4 @@ class AnimatedButton extends StatelessWidget {
     );
   }
 }
+

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getx_chapter_1/app/modules/product/controllers/cart_controller.dart';
 import 'package:getx_chapter_1/app/modules/product/controllers/checkout_controller.dart';
+import 'package:getx_chapter_1/app/routes/app_pages.dart';
 
 class CheckoutView extends StatelessWidget {
   final CheckoutController checkoutController = Get.find<CheckoutController>();
@@ -303,20 +304,72 @@ class CheckoutView extends StatelessWidget {
             ),
           ),
           Positioned(
-            bottom: 16,
-            left: 16,
-            right: 16,
-            child: SafeArea(
-              child: Center(
-                child: AnimatedButton(
-                  text: 'proceed to payment'.tr,
-                  onPressed: () => Get.toNamed('/payment'),
-                  icon: Icons.payment,
-                  isDarkMode: isDarkMode,
+  bottom: 16,
+  left: 16,
+  right: 16,
+  child: SafeArea(
+    child: Center(
+      child: AnimatedButton(
+        text: 'proceed to payment'.tr,
+        onPressed: () {
+          // Show dialog to select payment UI
+          Get.defaultDialog(
+            title: 'Select Payment UI'.tr,
+            titleStyle: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: Text(
+                    'Payment UI 1',
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                  ),
+                  onTap: () {
+                    Get.back(); // Close dialog
+                    Get.toNamed(Routes.PAYMENT);
+                  },
                 ),
+                ListTile(
+                  title: Text(
+                    'Payment UI 2',
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                  ),
+                  onTap: () {
+                    Get.back(); // Close dialog
+                    Get.toNamed(Routes.PAYMENT_1);
+                  },
+                ),
+                ListTile(
+                  title: Text(
+                    'Payment UI 3 ',
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                  ),
+                  onTap: () {
+                    Get.back(); // Close dialog
+                    Get.toNamed(Routes.PAYMENT_2);
+                  },
+                ),
+              ],
+            ),
+            cancel: TextButton(
+              onPressed: () => Get.back(),
+              child: Text(
+                'Cancel'.tr,
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
             ),
-          ),
+          );
+        },
+        icon: Icons.payment,
+        isDarkMode: isDarkMode,
+      ),
+    ),
+  ),
+),
         ],
       ),
     );

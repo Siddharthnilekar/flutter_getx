@@ -1,0 +1,147 @@
+[
+  {
+    "name": "AU Small Finance Bank Limited",
+    "short_code": "aubl",
+    "logo": "assets/images/banks/logos/aubl/logo.svg"
+  },
+  {
+    "name": "Axis Bank Ltd",
+    "short_code": "utib",
+    "logo": "assets/images/banks/logos/utib/logo.svg"
+  },
+  {
+    "name": "Bandhan Bank Ltd",
+    "short_code": "bdbl",
+    "logo": "assets/images/banks/logos/bdbl/logo.svg"
+  },
+  {
+    "name": "Bank of Baroda",
+    "short_code": "barb",
+    "logo": "assets/images/banks/logos/barb/logo.svg"
+  },
+  {
+    "name": "Bank of India",
+    "short_code": "bkid",
+    "logo": "assets/images/banks/logos/bkid/logo.svg"
+  },
+  {
+    "name": "Bank of Maharashtra",
+    "short_code": "mahb",
+    "logo": "assets/images/banks/logos/mahb/logo.svg"
+  },
+  {
+    "name": "Canara Bank",
+    "short_code": "cnrb",
+    "logo": "assets/images/banks/logos/cnrb/logo.svg"
+  },
+  {
+    "name": "Central Bank of India",
+    "short_code": "cbin",
+    "logo": "assets/images/banks/logos/cbin/logo.svg"
+  },
+  {
+    "name": "City Union Bank",
+    "short_code": "ciub",
+    "logo": "assets/images/banks/logos/ciub/logo.svg"
+  },
+  {
+    "name": "Catholic Syrian Bank Ltd",
+    "short_code": "csbk",
+    "logo": "assets/images/banks/logos/csbk/logo.svg"
+  },
+  {
+    "name": "DCB Bank Ltd",
+    "short_code": "dcbl",
+    "logo": "assets/images/banks/logos/dcbl/logo.svg"
+  },
+  {
+    "name": "Dhanalaxmi Bank",
+    "short_code": "dlxb",
+    "logo": "assets/images/banks/logos/dlxb/logo.svg"
+  },
+  {
+    "name": "Federal Bank Ltd",
+    "short_code": "fdrl",
+    "logo": "assets/images/banks/logos/fdrl/logo.svg"
+  },
+  {
+    "name": "HDFC Bank Ltd",
+    "short_code": "hdfc",
+    "logo": "assets/images/banks/logos/hdfc/logo.svg"
+  },
+  {
+    "name": "ICICI Bank Ltd",
+    "short_code": "icic",
+    "logo": "assets/images/banks/logos/icic/logo.svg"
+  },
+  {
+    "name": "IDBI Bank Ltd",
+    "short_code": "ibkl",
+    "logo": "assets/images/banks/logos/ibkl/logo.svg"
+  },
+  {
+    "name": "IDFC First Bank Ltd",
+    "short_code": "idfb",
+    "logo": "assets/images/banks/logos/idfb/logo.svg"
+  },
+  {
+    "name": "Indian Bank",
+    "short_code": "idib",
+    "logo": "assets/images/banks/logos/idib/logo.svg"
+  },
+  {
+    "name": "Indian Overseas Bank",
+    "short_code": "ioba",
+    "logo": "assets/images/banks/logos/ioba/logo.svg"
+  },
+  {
+    "name": "IndusInd Bank Ltd",
+    "short_code": "indb",
+    "logo": "assets/images/banks/logos/indb/logo.svg"
+  },
+  {
+    "name": "Karnataka Bank Ltd",
+    "short_code": "karb",
+    "logo": "assets/images/banks/logos/karb/logo.svg"
+  },
+  {
+    "name": "Karur Vysya Bank",
+    "short_code": "kvbl",
+    "logo": "assets/images/banks/logos/kvbl/logo.svg"
+  },
+  {
+    "name": "Kotak Mahindra Bank",
+    "short_code": "kkbk",
+    "logo": "assets/images/banks/logos/kkbk/logo.svg"
+  },
+  {
+    "name": "Punjab & Sind Bank",
+    "short_code": "psib",
+    "logo": "assets/images/banks/logos/psib/logo.svg"
+  },
+  {
+    "name": "RBL Bank Ltd",
+    "short_code": "ratn",
+    "logo": "assets/images/banks/logos/ratn/logo.svg"
+  },
+  {
+    "name": "South Indian Bank",
+    "short_code": "sibl",
+    "logo": "assets/images/banks/logos/sibl/logo.svg"
+  },
+  {
+    "name": "State Bank of India",
+    "short_code": "sbin",
+    "logo": "assets/images/banks/logos/sbin/logo.svg"
+  },
+  {
+    "name": "UCO Bank",
+    "short_code": "ucba",
+    "logo": "assets/images/banks/logos/ucba/logo.svg"
+  },
+  {
+    "name": "Yes Bank Ltd",
+    "short_code": "yesb",
+    "logo": "assets/images/banks/logos/yesb/logo.svg"
+  }
+]
